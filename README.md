@@ -13,7 +13,8 @@ been opened once.
 
 ## Install on a phone
 
-Open the page address once while the phone has signal or wifi, then:
+Open **https://jtcraw23.github.io/photoboard/** once while the phone has signal
+or wifi, then:
 
 - **iPhone (Safari):** tap Share, then **Add to Home Screen**.
 - **Android (Chrome):** open the menu, then **Install app** or **Add to Home

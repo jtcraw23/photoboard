@@ -36,10 +36,13 @@
   .view { display: none; }
   .view.active { display: block; }
   label { display: block; font-size: 14px; color: var(--muted); margin: 14px 0 4px; }
-  input, select { width: 100%; font-size: 18px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+  /* min-width: 0 lets inputs shrink below their intrinsic width so the grid
+     columns fit a narrow phone instead of overflowing sideways. */
+  input, select { width: 100%; min-width: 0; font-size: 18px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
   input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .row-3 { display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 12px; }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .row-3 { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }
+  .row > div, .row-3 > div { min-width: 0; }
   button.primary { width: 100%; margin-top: 20px; padding: 16px; font-size: 20px; font-weight: 600; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px; }
   button.secondary { width: 100%; margin-top: 10px; padding: 14px; font-size: 17px; background: var(--card); color: var(--accent); border: 1px solid var(--accent); border-radius: 10px; }
   button.danger { color: #8a1f11; border-color: #8a1f11; }
@@ -2478,7 +2481,7 @@ var qrcode = function() {
 (function () {
   'use strict';
 
-  var VERSION = 'v1';
+  var VERSION = 'v2';
   var PREFIX = 'MVARCH1';
   var FIELDS = ['site', 'unit', 'feature', 'level', 'photo_type', 'facing', 'board_date', 'photographer', 'note'];
   var REMEMBER = ['site', 'photographer', 'unit', 'feature', 'level', 'photo_type', 'facing', 'note'];

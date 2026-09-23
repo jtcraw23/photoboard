@@ -1,7 +1,7 @@
 // Photo Board service worker: cache-first so the installed page opens with no
 // signal. Bump CACHE on every deploy; the old cache is dropped on activate and
 // phones pick up the new files the next time they open the page with signal.
-var CACHE = 'photo-board-v2';
+var CACHE = 'photo-board-v3';
 var ASSETS = [
   './',
   './index.html',

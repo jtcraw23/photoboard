@@ -1,8 +1,9 @@
 # Photo Board
 
-A phone page for archaeological field photography. Fill in the context (site,
-unit, feature, level, photo type, facing, photographer, note), tap **Show
-code**, and lay the phone on the photo board for the board shot. The QR code in
+A phone page for archaeological field photography. Fill in the context (site
+number, DAACS number, unit, feature, level, photo type, facing, photographer,
+description), tap **Show code**, and lay the phone on the photo board for the
+board shot. The QR code in
 that photo carries the same information as the handwritten board, so the
 desktop side (`board_reader.py` in the photo tools) can tag every photo that
 follows it without anyone retyping the board.
@@ -25,8 +26,8 @@ updated, phones pick up the new version the next time they open it with signal.
 
 ## In the field
 
-1. Fill in the form. Site and photographer are remembered; unit, feature and
-   level offer the values used before.
+1. Fill in the form. Site number and photographer are remembered; DAACS number,
+   unit, feature and level offer the values used before.
 2. Tap **Show code**. Turn the screen brightness up.
 3. Lay the phone on the board, or hold it beside the board, and take the board
    shot as usual. Then take the photo series.
@@ -36,18 +37,19 @@ updated, phones pick up the new version the next time they open it with signal.
 The **Log** tab lists every code shown on this phone and exports the list as a
 CSV, which doubles as the day's photo log.
 
-## Code format (version 1)
+## Code format (version 2)
 
 One line, pipe-delimited, byte mode, error correction M:
 
 ```
-MVARCH1|<site>|<unit>|<feature>|<level>|<phototype>|<facing>|<YYYY-MM-DD>|<photographer>|<note>
+MVARCH2|<site>|<daacs>|<unit>|<feature>|<level>|<phototype>|<facing>|<YYYY-MM-DD>|<photographer>|<description>
 ```
 
-Empty fields stay empty between the pipes. `MVARCH1` marks the format and its
-version, so a reader can ignore any other QR code that appears in a photo. The
-page strips `|` and line breaks from every field and trims the note so the
-whole line stays under 200 characters.
+Empty fields stay empty between the pipes. `MVARCH2` marks the format and its
+version, so a reader can ignore any other QR code that appears in a photo, and
+can still read version 1 codes (`MVARCH1`, which had no DAACS number). The
+page strips `|` and line breaks from every field and trims the description so
+the whole line stays under 200 characters.
 
 ## Files
 

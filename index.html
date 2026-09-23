@@ -52,8 +52,10 @@
   .hint { font-size: 14px; color: var(--muted); margin-top: 8px; }
 
   /* Code view stays white edge to edge: the QR needs a bright, even surround. */
-  #code-view.active { position: fixed; inset: 0; background: #fff; overflow: auto; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); z-index: 10; }
-  #qr { width: min(92vw, 62vh); height: min(92vw, 62vh); margin: 8px auto 0; display: block; background: #fff; }
+  #code-view.active { position: fixed; inset: 0; background: #fff; overflow-y: auto; overflow-x: hidden; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); z-index: 10; }
+  /* Square box sized from the panel's content width (viewport minus the 16px
+     side padding) or 62% of the height, whichever is smaller. */
+  #qr { --qr-side: min(calc(100vw - 32px), 62vh); width: var(--qr-side); height: var(--qr-side); margin: 8px auto 0; display: block; background: #fff; }
   #qr svg { width: 100%; height: 100%; display: block; }
   .readout { text-align: center; margin-top: 10px; }
   .readout .big { font-size: 28px; font-weight: 700; letter-spacing: .5px; }
@@ -86,29 +88,30 @@
     <form id="board-form" autocomplete="off">
       <div class="row">
         <div>
-          <label for="site">Site / project</label>
-          <input id="site" name="site" placeholder="762_46" inputmode="text" autocapitalize="characters">
+          <label for="site">Site number</label>
+          <input id="site" name="site" inputmode="text" autocapitalize="characters">
         </div>
         <div>
-          <label for="photographer">Photographer</label>
-          <input id="photographer" name="photographer" placeholder="Initials" autocapitalize="characters">
+          <label for="daacs">DAACS number</label>
+          <input id="daacs" name="daacs" list="daacs-list" autocapitalize="characters">
+          <datalist id="daacs-list"></datalist>
         </div>
       </div>
 
       <div class="row-3">
         <div>
           <label for="unit">Unit</label>
-          <input id="unit" name="unit" list="unit-list" placeholder="TU3" autocapitalize="characters">
+          <input id="unit" name="unit" list="unit-list" autocapitalize="characters">
           <datalist id="unit-list"></datalist>
         </div>
         <div>
           <label for="feature">Feature</label>
-          <input id="feature" name="feature" list="feature-list" placeholder="F027" autocapitalize="characters">
+          <input id="feature" name="feature" list="feature-list" autocapitalize="characters">
           <datalist id="feature-list"></datalist>
         </div>
         <div>
           <label for="level">Level</label>
-          <input id="level" name="level" list="level-list" placeholder="B" autocapitalize="characters">
+          <input id="level" name="level" list="level-list" autocapitalize="characters">
           <datalist id="level-list"></datalist>
         </div>
       </div>
@@ -139,8 +142,11 @@
         </div>
       </div>
 
-      <label for="note">Note (short)</label>
-      <input id="note" name="note" placeholder="posthole below 1990s backfill" maxlength="80">
+      <label for="photographer">Photographer</label>
+      <input id="photographer" name="photographer" autocapitalize="characters">
+
+      <label for="description">Description</label>
+      <input id="description" name="description" maxlength="80">
 
       <div id="form-warn" class="warn"></div>
 
@@ -173,8 +179,6 @@
     <button type="button" class="secondary danger" id="clear-log">Clear log</button>
   </section>
 </main>
-<footer>Photo Board <span id="version"></span>. Works offline once installed.</footer>
-
 <script>
 /* qrcode-generator 1.4.4 (c) 2009 Kazuhiko Arase, MIT. Inlined for offline use. */
 //---------------------------------------------------------------------
@@ -2481,11 +2485,12 @@ var qrcode = function() {
 (function () {
   'use strict';
 
-  var VERSION = 'v2';
-  var PREFIX = 'MVARCH1';
-  var FIELDS = ['site', 'unit', 'feature', 'level', 'photo_type', 'facing', 'board_date', 'photographer', 'note'];
-  var REMEMBER = ['site', 'photographer', 'unit', 'feature', 'level', 'photo_type', 'facing', 'note'];
-  var RECENT = ['unit', 'feature', 'level'];
+  // Payload version 2: MVARCH2 plus ten fields. (Version 1 had no DAACS
+  // number and called the description "note"; board_reader.py reads both.)
+  var PREFIX = 'MVARCH2';
+  var FIELDS = ['site', 'daacs', 'unit', 'feature', 'level', 'photo_type', 'facing', 'board_date', 'photographer', 'description'];
+  var REMEMBER = ['site', 'daacs', 'photographer', 'unit', 'feature', 'level', 'photo_type', 'facing', 'description'];
+  var RECENT = ['daacs', 'unit', 'feature', 'level'];
   var MAX_PAYLOAD = 200;
   var MAX_RECENT = 30;
   var KEY = { last: 'pb.last', recent: 'pb.recent', log: 'pb.log' };
@@ -2527,10 +2532,10 @@ var qrcode = function() {
     var fields = FIELDS.map(function (k) { return v[k] || ''; });
     var line = [PREFIX].concat(fields).join('|');
     if (line.length > MAX_PAYLOAD) {
-      // Only the note is free text long enough to matter; trim it, never a code.
+      // Only the description is free text long enough to matter; trim it, never a code.
       var over = line.length - MAX_PAYLOAD;
-      v.note = v.note.slice(0, Math.max(0, v.note.length - over)).trim();
-      fields[FIELDS.indexOf('note')] = v.note;
+      v.description = v.description.slice(0, Math.max(0, v.description.length - over)).trim();
+      fields[FIELDS.indexOf('description')] = v.description;
       line = [PREFIX].concat(fields).join('|');
     }
     return line;
@@ -2594,7 +2599,7 @@ var qrcode = function() {
       var v = e.v || {};
       li.innerHTML = '<div class="t"></div><div></div>';
       li.firstChild.textContent = e.ts + (v.photographer ? '  ' + v.photographer : '');
-      li.lastChild.textContent = contextLabel(v) + '  ' + (v.photo_type || '') + (v.facing ? '  facing ' + v.facing : '') + (v.note ? '  ' + v.note : '');
+      li.lastChild.textContent = contextLabel(v) + '  ' + (v.photo_type || '') + (v.facing ? '  facing ' + v.facing : '') + (v.description ? '  ' + v.description : '');
       ul.appendChild(li);
     });
   }
@@ -2669,13 +2674,13 @@ var qrcode = function() {
     try {
       renderQr(payload);
     } catch (e) {
-      alert('Could not build the code. Shorten the note and try again.');
+      alert('Could not build the code. Shorten the description and try again.');
       return;
     }
     $('ro-context').textContent = contextLabel(v);
     $('ro-type').textContent = v.photo_type + (v.facing ? '  facing ' + v.facing : '');
-    $('ro-meta').textContent = [v.site, v.board_date, v.photographer].filter(Boolean).join('   ');
-    $('ro-note').textContent = v.note || '';
+    $('ro-meta').textContent = [v.site, v.daacs ? 'DAACS ' + v.daacs : '', v.board_date, v.photographer].filter(Boolean).join('   ');
+    $('ro-note').textContent = v.description || '';
     remember(v);
     appendLog(v, payload);
     show('code-view');
@@ -2715,7 +2720,6 @@ var qrcode = function() {
   });
 
   // ---- boot
-  $('version').textContent = VERSION;
   restoreForm();
   renderLog();
   if ('serviceWorker' in navigator) {
